@@ -69,7 +69,7 @@ def test_star():
         },
         accepting_states={1},
     )
-    n = m.star()
+    n = +m
     assert n.accepts("")
     assert n.accepts("a")
     assert n.accepts("aa")

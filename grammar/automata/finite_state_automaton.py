@@ -110,6 +110,9 @@ class FiniteStateAutomaton(object):
     def __or__(self, other):
         return self.union(other)
 
+    def __pos__(self):
+        return self.star()
+
     def __repr__(self):
         return "FSM(%s, %s, %s, %s)" % (
             self.states,
