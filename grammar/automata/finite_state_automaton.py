@@ -27,15 +27,15 @@ class FiniteStateAutomaton(object):
 
     def run(self, symbols):
         """Get the set of final states."""
-        states = self.closure({self.start_state})
+        current_states = self.closure({self.start_state})
         for symbol in symbols:
-            states = self.closure({
+            current_states = self.closure({
                 transition.end
                 for transition in self.transitions
-                for state in states
+                for state in current_states
                 if transition.start == state and transition.symbol == symbol
             })
-        return states
+        return current_states
 
     def accepts(self, string):
         """Check if a machine recognizes a string."""
