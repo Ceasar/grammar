@@ -33,7 +33,7 @@ def test_union():
         transitions={Transition(0, 1, 'b')},
         accepting_states={1},
     )
-    o = m.union(n)
+    o = m | n
     assert o.accepts("a")
     assert o.accepts("b")
     assert not o.accepts("ab")
