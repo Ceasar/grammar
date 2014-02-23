@@ -1,4 +1,4 @@
-from finite_state_automaton import FiniteStateAutomaton, Transition
+from fsm import FiniteStateAutomaton, Transition
 
 
 def test_accept():
