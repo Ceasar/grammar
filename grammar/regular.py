@@ -1,8 +1,7 @@
 from automata.fsm import Transition, FiniteStateAutomaton as FSM
 
 
-def infix_to_postfix(symbols):
-    outputs = ''
+def _infix_to_postfix(symbols):
     stack = []
     for symbol in symbols:
         if symbol == ')':
@@ -11,7 +10,7 @@ def infix_to_postfix(symbols):
                 if p == '(':
                     new_stack.append(p)
                 else:
-                    outputs += p
+                    yield p
             stack = new_stack
             try:
                 stack.pop()
@@ -20,13 +19,14 @@ def infix_to_postfix(symbols):
         elif symbol in {'(', '|', '&'}:
             stack.append(symbol)
         else:
-            outputs += symbol
+            yield symbol
     if "(" in stack:
         raise SyntaxError("unmatched parenthesis")
-    return outputs + ''.join(stack)
+    for symbol in stack:
+        yield symbol
 
 
-def postfix_to_fsm(symbols):
+def _postfix_to_fsm(symbols):
     ms = []
     for symbol in symbols:
         if symbol == '|':
@@ -48,7 +48,7 @@ def postfix_to_fsm(symbols):
 
 
 def _make_fsm(infix):
-    return postfix_to_fsm(infix_to_postfix(infix))
+    return _postfix_to_fsm(_infix_to_postfix(infix))
 
 
 def matches(infix, string):

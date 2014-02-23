@@ -3,74 +3,77 @@ import pytest
 from grammar.regular import *
 
 
+def test_matches_trivial1():
+    re = "x"
+    assert matches(re, "x")
+    assert not matches(re, "")
+    assert not matches(re, "y")
 
-def test_infix_to_postfix_and():
-    assert infix_to_postfix("x&y") == "xy&"
+def test_matches_trivial2():
+    re = "(x)"
+    assert matches(re, "x")
+    assert not matches(re, "")
+    assert not matches(re, "y")
 
-def test_infix_to_postfix_or():
-    assert infix_to_postfix("x|y") == "xy|"
-
-def test_infix_to_postfix_star():
-    assert infix_to_postfix("x*") == "x*"
-
-def test_infix_to_postfix_parens1():
-    assert infix_to_postfix("(x|y)") == "xy|"
-
-def test_infix_to_postfix_parens2():
-    assert infix_to_postfix("((x&y)|z)") == "xy&z|"
-
-def test_infix_to_postfix_parens3():
-    assert infix_to_postfix("(x&(y|z))") == "xyz|&"
-
-def test_infix_to_postfix_parens4():
-    assert infix_to_postfix("a&(b|(c&d))") == "abcd&|&"
-
-def test_infix_to_postfix_mismatched_parens():
-    with pytest.raises(SyntaxError):
-        infix_to_postfix("a)")
-
-def test_infix_to_postfix_not_enough_parens():
-    with pytest.raises(SyntaxError):
-        infix_to_postfix("(a")
-
-def test_infix_to_postfix_case1():
-    assert infix_to_postfix("((x))") == "x"
-
-def test_infix_to_postfix_case2():
-    assert infix_to_postfix("(x&y)") == "xy&"
-
-def test_infix_to_postfix_case3():
-    assert infix_to_postfix("x&y&z") == "xyz&&"
-
-def test_infix_to_postfix_case4():
-    assert infix_to_postfix("x|y|z") == "xyz||"
-
-def test_matches_trivial():
-    assert matches("x", "x")
-    assert not matches("x", "")
-    assert not matches("x", "y")
+def test_matches_trivial3():
+    re = "((x))"
+    assert matches(re, "x")
+    assert not matches(re, "")
+    assert not matches(re, "y")
 
 def test_matches_star():
-    assert matches("x*", "")
-    assert matches("x*", "x")
-    assert matches("x*", "xx")
-    assert not matches("x*", "y")
+    assert matches("a*", "")
+    assert matches("a*", "a")
+    assert matches("a*", "aa")
+    assert not matches("a*", "b")
+
+def test_matches_union0():
+    assert matches("a|b", "a")
+    assert matches("a|b", "b")
 
 def test_matches_union1():
-    assert matches("x|y|z", "x")
+    assert matches("(a|b)", "a")
+    assert matches("(a|b)", "b")
 
 def test_matches_union2():
-    assert matches("x|y|z", "y")
+    re = "x|y|z"
+    assert matches(re, "x")
+    assert matches(re, "y")
+    assert matches(re, "z")
+    assert not matches(re, "d")
+    assert not matches(re, "xy")
 
-def test_matches_union3():
-    assert matches("x|y|z", "z")
+def test_matches_concatenation1():
+    re = "a&b"
+    assert matches(re, "ab")
 
-def test_matches_union4():
-    assert not matches("x|y|z", "d")
+def test_matches_concatenation2():
+    re = "a&b&c"
+    assert matches(re, "abc")
+    assert not matches(re, "")
+    assert not matches(re, "a")
+    assert not matches(re, "ab")
+    assert not matches(re, "d")
 
-def test_matches_concatenation():
-    assert matches("x&y&z", "xyz")
-    assert not matches("x&y&z", "")
-    assert not matches("x&y&z", "x")
-    assert not matches("x&y&z", "xy")
-    assert not matches("x&y&z", "d")
+def test_complex1():
+    re = "((x&y)|z)"
+    assert matches(re, "xy")
+    assert matches(re, "z")
+
+def test_complex2():
+    re = "(x&(y|z))"
+    assert matches(re, "xy")
+    assert matches(re, "xz")
+
+def test_complex3():
+    re = "a&(b|(c&d))"
+    assert matches(re, "ab")
+    assert matches(re, "acd")
+
+def test_mismatched_parens():
+    with pytest.raises(SyntaxError):
+        matches("a)", "a")
+
+def test_not_enough_parens():
+    with pytest.raises(SyntaxError):
+        matches("(a", "a")
