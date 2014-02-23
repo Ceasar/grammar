@@ -15,21 +15,16 @@ class FiniteStateAutomaton(object):
         """
         Get the states reachable from epsilon transitions.
         """
-        new_states = {
-            transition.end
-            for transition in self.transitions
-            for state in states
-            if transition.start == state and transition.symbol is None
-        }
-        while new_states - states:
-            states |= new_states
+        while True:
             new_states = {
                 transition.end
                 for transition in self.transitions
                 for state in states
                 if transition.start == state and transition.symbol is None
             }
-        return states
+            if new_states <= states:
+                return states
+            states |= new_states
 
     def recognizes(self, symbols):
         """Check if a machine recognizes a string."""
