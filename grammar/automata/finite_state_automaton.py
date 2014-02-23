@@ -72,6 +72,27 @@ class FiniteStateAutomaton(object):
             accepting_states=(a.accepting_states | b.accepting_states),
         )
 
+
+    def star(self):
+        """
+        Combine two machines to recognize the union of their languages.
+
+        :param other: A FSM.
+        """
+        a = self.normalize()
+        start_state = min(a.states) - 1
+        return FiniteStateAutomaton(
+            states=a.states,
+            start_state=start_state,
+            transitions=(
+                a.transitions |
+                {Transition(start_state, a.start_state, None)} |
+                {Transition(state, a.start_state, None)
+                 for state in a.accepting_states}
+            ),
+            accepting_states=({start_state} | a.accepting_states),
+        )
+
     def __add__(self, other):
         a, b = self.normalize(), other.normalize()
         return FiniteStateAutomaton(

@@ -58,3 +58,19 @@ def test_concatenation():
     assert not o.accepts("b")
     assert o.accepts("ab")
     assert not o.accepts("ba")
+
+
+def test_star():
+    m = FiniteStateAutomaton(
+        states={0, 1},
+        start_state=0,
+        transitions={
+            Transition(0, 1, 'a'),
+        },
+        accepting_states={1},
+    )
+    n = m.star()
+    assert n.accepts("")
+    assert n.accepts("a")
+    assert n.accepts("aa")
+    assert not n.accepts("b")
