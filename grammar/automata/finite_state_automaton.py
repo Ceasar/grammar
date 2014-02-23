@@ -4,10 +4,10 @@ Transition = namedtuple("Transition", ["start", "end", "symbol"])
 
 
 class FiniteStateAutomaton(object):
-    def __init__(self, states, transitions, start_state, accepting_states):
+    def __init__(self, states, start_state, transitions, accepting_states):
         self.states = states
-        self.transitions = transitions
         self.start_state = start_state
+        self.transitions = transitions
         self.accepting_states = accepting_states
 
     def closure(self, states):
@@ -41,32 +41,43 @@ class FiniteStateAutomaton(object):
         """Check if a machine recognizes a string."""
         return bool(self.run(string) & self.accepting_states)
 
+    def normalize(self, k=0):
+        """
+        Normalize a set by mapping all of its states to integers, starting with
+        ``k``.
+        """
+        m = {state: i + k for i, state in enumerate(self.states)}
+        return FiniteStateAutomaton(
+            states=set(m.values()),
+            start_state=k,
+            transitions={Transition(m[start], m[end], symbol)
+                        for start, end, symbol in self.transitions},
+            accepting_states={m[state] for state in self.accepting_states},
+        )
+
     def union(self, other):
-        states = set(range(len(self.states) + len(other.states) + 1))
-        start_state = 0
+        """
+        Combine two machines to recognize the union of their languages.
 
-        m1 = {}
-        for i, state in enumerate(self.states):
-            m1[state] = i + 1
-        m2 = {}
-        for i, state in enumerate(other.states):
-            m2[state] = i + 1 + len(self.states)
+        :param other: A FSM.
+        """
+        i, j = 0, len(self.states)
+        a, b = self.normalize(i), other.normalize(j)
+        return FiniteStateAutomaton(
+            states=(a.states | b.states),
+            start_state=i,
+            transitions=(
+                a.transitions |
+                b.transitions |
+                {Transition(i, j, None)}
+            ),
+            accepting_states=(a.accepting_states | b.accepting_states),
+        )
 
-        transitions = set()
-        for transition in self.transitions:
-            start, end, symbol = transition
-            transitions.add(Transition(m1[start], m1[end], symbol))
-        for transition in other.transitions:
-            start, end, symbol = transition
-            transitions.add(Transition(m2[start], m2[end], symbol))
-        transitions.add(Transition(0, 1, None))
-        transitions.add(Transition(0, 1 + len(self.states), None))
-
-        accepting_states = set()
-        for state in self.accepting_states:
-            accepting_states.add(m1[state])
-        for state in self.accepting_states:
-            accepting_states.add(m2[state])
-
-        return FiniteStateAutomaton(states, transitions, start_state,
-                                    accepting_states)
+    def __repr__(self):
+        return "FSM(%s, %s, %s, %s)" % (
+            self.states,
+            self.start_state,
+            self.transitions,
+            self.accepting_states,
+        )
