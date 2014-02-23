@@ -72,6 +72,20 @@ class FiniteStateAutomaton(object):
             accepting_states=(a.accepting_states | b.accepting_states),
         )
 
+    def __add__(self, other):
+        a, b = self.normalize(), other.normalize()
+        return FiniteStateAutomaton(
+            states=(a.states | b.states),
+            start_state=a.start_state,
+            transitions=(
+                a.transitions |
+                b.transitions |
+                {Transition(state, b.start_state, None)
+                 for state in a.accepting_states}
+            ),
+            accepting_states=b.accepting_states,
+        )
+
     def __or__(self, other):
         return self.union(other)
 
