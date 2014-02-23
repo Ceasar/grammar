@@ -41,14 +41,14 @@ class FiniteStateAutomaton(object):
         """Check if a machine recognizes a string."""
         return bool(self.run(string) & self.accepting_states)
 
-    def normalize(self):
+    def normalize(self, k=0):
         """
         Normalize a set by mapping all of its states to unique integers.
         """
-        m = {state: i + hash(self) for i, state in enumerate(self.states)}
+        m = {state: i + k for i, state in enumerate(self.states)}
         return FiniteStateAutomaton(
             states=set(m.values()),
-            start_state=hash(self),
+            start_state=k,
             transitions={Transition(m[start], m[end], symbol)
                         for start, end, symbol in self.transitions},
             accepting_states={m[state] for state in self.accepting_states},
@@ -60,7 +60,7 @@ class FiniteStateAutomaton(object):
 
         :param other: A FSM.
         """
-        a, b = self.normalize(), other.normalize()
+        a, b = self.normalize(), other.normalize(len(self.states))
         return FiniteStateAutomaton(
             states=(a.states | b.states),
             start_state=a.start_state,
@@ -94,7 +94,7 @@ class FiniteStateAutomaton(object):
         )
 
     def __add__(self, other):
-        a, b = self.normalize(), other.normalize()
+        a, b = self.normalize(), other.normalize(len(self.states))
         return FiniteStateAutomaton(
             states=(a.states | b.states),
             start_state=a.start_state,
