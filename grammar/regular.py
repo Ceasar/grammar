@@ -2,69 +2,57 @@ from automata.fsm import Transition, FiniteStateAutomaton as FSM
 
 def _shunt(outputs, ps, symbols):
     if not symbols:
-        outputs.reverse()
-        return "".join(outputs + ps)
+        return outputs[::-1] + ps
     elif not ps:
-        symbol = symbols[0]
-        if symbol in {'(', '|', '&'}:
-            ps.append(symbol)
-            return _shunt(outputs, ps, symbols[1:])
+        if symbols[0] in {'(', '|', '&'}:
+            return _shunt(outputs, ps + symbols[0], symbols[1:])
         else:
-            return _shunt([symbol] + outputs, [], symbols[1:])
+            return _shunt(symbols[0] + outputs, ps, symbols[1:])
     else:
-        symbol = symbols[0]
-        p = ps[0]
-        xs = symbols[1:]
+        symbol, symbols = symbols[0], symbols[1:]
         if symbol == "(":
-            return _shunt(outputs, [symbol] + ps, xs)
+            return _shunt(outputs, '(' + ps, symbols)
         elif symbol == ")":
-            ls, rs = [], []
-            for x in ps:
-                if x == "(":
-                    rs.append(x)
+            ls, rs = "", ""
+            for p in ps:
+                if p == "(":
+                    rs += p
                 else:
-                    ls.append(x)
-                    return _shunt(ls + outputs, rs[1:], xs)
+                    ls += p
+            return _shunt(ls + outputs, rs[1:], symbols)
         elif symbol == "|":
-            if p == "(":
-                return _shunt(outputs, [symbol] + ps, xs)
+            if ps[0] == "(":
+                return _shunt(outputs, '|' + ps, symbols)
             else:
-                return _shunt([p] + outputs, [symbol] + ps[1:], xs)
+                return _shunt(ps[0] + outputs, '|' + ps[1:], symbols)
         elif symbol == "&":
-            return _shunt(outputs, [symbol] + ps, xs)
+            return _shunt(outputs, '&' + ps, symbols)
         else:
-            return _shunt([symbol] + outputs, ps, xs)
+            return _shunt(symbol+ outputs, ps, symbols)
 
 def infix_to_postfix(infix):
-    return _shunt([], [], infix)
+    return _shunt("", "", infix)
 
-def postfix_to_fsm(postfix):
+def postfix_to_fsm(symbols):
     ms = []
-    for char in postfix:
-        if char == '|':
-            m1 = ms.pop()
-            m2 = ms.pop()
-            ms.append(m1 | m2)
-        elif char == '&':
-            m1 = ms.pop()
-            m2 = ms.pop()
-            ms.append(m1 + m2)
-        elif char == '*':
-            m1 = ms.pop()
-            ms.append(+m1)
-        elif char == '@':
+    for symbol in symbols:
+        if symbol == '|':
+            ms.append(ms.pop() | ms.pop())
+        elif symbol == '&':
+            ms.append(ms.pop() + ms.pop())
+        elif symbol == '*':
+            ms.append(+ms.pop())
+        elif symbol == '@':
             pass
         else:
-            fsm = FSM(
+            ms.append(FSM(
                 states={0, 1},
                 start_state=0,
-                transitions={Transition(0, 1, char)},
+                transitions={Transition(0, 1, symbol)},
                 accepting_states={1},
-            )
-            ms.append(fsm)
-    return ms[0]
+            ))
+    return ms.pop()
 
 def matches(infix, string):
-    postfix = infix_to_postfix(infix)
-    fsm = postfix_to_fsm(postfix)
+    fsm = postfix_to_fsm(infix_to_postfix(infix))
     return fsm.recognizes(string)
