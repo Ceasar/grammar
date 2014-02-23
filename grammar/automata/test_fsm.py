@@ -8,7 +8,7 @@ def test_accept():
         transitions={Transition(0, 1, 'a')},
         accepting_states={1},
     )
-    assert m.accepts("a")
+    assert m.recognizes("a")
 
 
 def test_reject():
@@ -18,7 +18,7 @@ def test_reject():
         transitions={Transition(0, 1, 'a')},
         accepting_states={1},
     )
-    assert not m.accepts("b")
+    assert not m.recognizes("b")
 
 
 def test_union():
@@ -35,9 +35,9 @@ def test_union():
         accepting_states={1},
     )
     o = m | n
-    assert o.accepts("a")
-    assert o.accepts("b")
-    assert not o.accepts("c")
+    assert o.recognizes("a")
+    assert o.recognizes("b")
+    assert not o.recognizes("c")
 
 
 def test_concatenation():
@@ -54,10 +54,10 @@ def test_concatenation():
         accepting_states={1},
     )
     o = m + n
-    assert not o.accepts("a")
-    assert not o.accepts("b")
-    assert o.accepts("ab")
-    assert not o.accepts("ba")
+    assert not o.recognizes("a")
+    assert not o.recognizes("b")
+    assert o.recognizes("ab")
+    assert not o.recognizes("ba")
 
 
 def test_star():
@@ -70,7 +70,7 @@ def test_star():
         accepting_states={1},
     )
     n = +m
-    assert n.accepts("")
-    assert n.accepts("a")
-    assert n.accepts("aa")
-    assert not n.accepts("b")
+    assert n.recognizes("")
+    assert n.recognizes("a")
+    assert n.recognizes("aa")
+    assert not n.recognizes("b")

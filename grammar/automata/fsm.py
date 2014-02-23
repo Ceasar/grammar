@@ -11,7 +11,7 @@ class FiniteStateAutomaton(object):
         self.transitions = transitions
         self.accepting_states = accepting_states
 
-    def closure(self, states):
+    def _closure(self, states):
         """
         Get the states reachable from epsilon transitions.
         """
@@ -28,9 +28,9 @@ class FiniteStateAutomaton(object):
 
     def run(self, symbols):
         """Get the set of final states."""
-        current_states = self.closure({self.start_state})
+        current_states = self._closure({self.start_state})
         for symbol in symbols:
-            current_states = self.closure({
+            current_states = self._closure({
                 transition.end
                 for transition in self.transitions
                 for state in current_states
@@ -38,7 +38,7 @@ class FiniteStateAutomaton(object):
             })
         return current_states
 
-    def accepts(self, string):
+    def recognizes(self, string):
         """Check if a machine recognizes a string."""
         return bool(self.run(string) & self.accepting_states)
 
