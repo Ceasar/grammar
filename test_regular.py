@@ -14,8 +14,44 @@ def test_infix_to_postfix_star():
 def test_infix_to_postfix_parens():
     assert infix_to_postfix("(x|y)") == "xy|"
 
-def test_infix_to_postfix_case():
-    assert infix_to_postfix("(x|y)&y") == "xy|y&"
+def test_infix_to_postfix_case1():
+    assert infix_to_postfix("((x))") == "x"
 
-def test_matches():
-    assert matches("(x|y)", "x")
+def test_infix_to_postfix_case2():
+    assert infix_to_postfix("(x&y)") == "xy&"
+
+def test_infix_to_postfix_case3():
+    assert infix_to_postfix("x&y&z") == "xyz&&"
+
+def test_infix_to_postfix_case4():
+    assert infix_to_postfix("x|y|z") == "xyz||"
+
+def test_matches_trivial():
+    assert matches("x", "x")
+    assert not matches("x", "")
+    assert not matches("x", "y")
+
+def test_matches_star():
+    assert matches("x*", "")
+    assert matches("x*", "x")
+    assert matches("x*", "xx")
+    assert not matches("x*", "y")
+
+def test_matches_union1():
+    assert matches("x|y|z", "x")
+
+def test_matches_union2():
+    assert matches("x|y|z", "y")
+
+def test_matches_union3():
+    assert matches("x|y|z", "z")
+
+def test_matches_union4():
+    assert not matches("x|y|z", "d")
+
+def test_matches_concatenation():
+    assert matches("x&y&z", "xyz")
+    assert not matches("x&y&z", "")
+    assert not matches("x&y&z", "x")
+    assert not matches("x&y&z", "xy")
+    assert not matches("x&y&z", "d")

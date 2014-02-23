@@ -5,10 +5,11 @@ def _shunt(symbols):
     outputs = ''
     ps = ''
     for symbol in symbols:
-        if ps:
+        if ps and symbol in ('(', ')'):
             if symbol == '(':
-                ps = '(' + ps
-            elif symbol == ')':
+                ps += '('
+            else:
+                pass
                 rs = ''
                 for p in ps:
                     if p == '(':
@@ -16,16 +17,6 @@ def _shunt(symbols):
                     else:
                         outputs += p
                 ps = rs[1:]
-            elif symbol == '|':
-                if ps[0] == '(':
-                    ps = '|' + ps
-                else:
-                    outputs += '('
-                    ps = '|' + ps[1:]
-            elif symbol == '&':
-                ps = '&' + ps
-            else:
-                outputs += symbol
         elif symbol in {'(', '|', '&'}:
             ps += symbol
         else:
@@ -42,11 +33,11 @@ def postfix_to_fsm(symbols):
         if symbol == '|':
             ms.append(ms.pop() | ms.pop())
         elif symbol == '&':
-            ms.append(ms.pop() + ms.pop())
+            m1 = ms.pop()
+            m2 = ms.pop()
+            ms.append(m2 + m1)
         elif symbol == '*':
             ms.append(+ms.pop())
-        elif symbol == '@':
-            pass
         else:
             ms.append(FSM(
                 states={0, 1},
@@ -56,6 +47,9 @@ def postfix_to_fsm(symbols):
             ))
     return ms.pop()
 
+def _make_fsm(infix):
+    return postfix_to_fsm(infix_to_postfix(infix))
+
 def matches(infix, string):
-    fsm = postfix_to_fsm(infix_to_postfix(infix))
+    fsm = _make_fsm(infix)
     return fsm.recognizes(string)
