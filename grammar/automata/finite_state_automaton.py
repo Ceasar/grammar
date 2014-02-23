@@ -72,6 +72,19 @@ class FiniteStateAutomaton(object):
             accepting_states=(a.accepting_states | b.accepting_states),
         )
 
+    def concatenate(self, other):
+        a, b = self.normalize(), other.normalize(len(self.states))
+        return FiniteStateAutomaton(
+            states=(a.states | b.states),
+            start_state=a.start_state,
+            transitions=(
+                a.transitions |
+                b.transitions |
+                {Transition(state, b.start_state, None)
+                 for state in a.accepting_states}
+            ),
+            accepting_states=b.accepting_states,
+        )
 
     def star(self):
         """
@@ -94,18 +107,7 @@ class FiniteStateAutomaton(object):
         )
 
     def __add__(self, other):
-        a, b = self.normalize(), other.normalize(len(self.states))
-        return FiniteStateAutomaton(
-            states=(a.states | b.states),
-            start_state=a.start_state,
-            transitions=(
-                a.transitions |
-                b.transitions |
-                {Transition(state, b.start_state, None)
-                 for state in a.accepting_states}
-            ),
-            accepting_states=b.accepting_states,
-        )
+        return self.concatenate(other)
 
     def __or__(self, other):
         return self.union(other)
