@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 Transition = namedtuple("Transition", ["start", "end", "symbol"])
 
 
