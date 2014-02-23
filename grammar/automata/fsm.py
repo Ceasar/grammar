@@ -26,8 +26,8 @@ class FiniteStateAutomaton(object):
             }
         return states
 
-    def run(self, symbols):
-        """Get the set of final states."""
+    def recognizes(self, symbols):
+        """Check if a machine recognizes a string."""
         current_states = self._closure({self.start_state})
         for symbol in symbols:
             current_states = self._closure({
@@ -36,11 +36,7 @@ class FiniteStateAutomaton(object):
                 for state in current_states
                 if transition.start == state and transition.symbol == symbol
             })
-        return current_states
-
-    def recognizes(self, string):
-        """Check if a machine recognizes a string."""
-        return bool(self.run(string) & self.accepting_states)
+        return bool(current_states & self.accepting_states)
 
     def normalize(self, k=0):
         """
