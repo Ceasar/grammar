@@ -74,3 +74,21 @@ def test_star():
     assert n.recognizes("a")
     assert n.recognizes("aa")
     assert not n.recognizes("b")
+
+def test_epsilon():
+    m = FiniteStateAutomaton(
+        states=set([0, 1, 2, 3, 4, 5]),
+        start_state=0,
+        transitions=set([
+            Transition(start=0, end=1, symbol='c'),
+            Transition(start=0, end=2, symbol=None),
+            Transition(start=2, end=3, symbol='b'),
+            Transition(start=2, end=4, symbol=None),
+            Transition(start=4, end=5, symbol='a'),
+        ]),
+        accepting_states=set([1, 3, 5]),
+    )
+    assert m.recognizes("a")
+    assert m.recognizes("b")
+    assert m.recognizes("c")
+    assert not m.recognizes("d")
