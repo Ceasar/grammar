@@ -1,37 +1,40 @@
 from automata.fsm import Transition, FiniteStateAutomaton as FSM
 
-def _shunt(outputs, ps, symbols):
-    if not symbols:
-        return outputs[::-1] + ps
-    elif not ps:
-        if symbols[0] in {'(', '|', '&'}:
-            return _shunt(outputs, ps + symbols[0], symbols[1:])
-        else:
-            return _shunt(symbols[0] + outputs, ps, symbols[1:])
-    else:
-        symbol, symbols = symbols[0], symbols[1:]
-        if symbol == "(":
-            return _shunt(outputs, '(' + ps, symbols)
-        elif symbol == ")":
-            ls, rs = "", ""
-            for p in ps:
-                if p == "(":
-                    rs += p
+
+def _shunt(symbols):
+    outputs = ''
+    ps = ''
+    for symbol in symbols:
+        if ps:
+            if symbol == '(':
+                ps = '(' + ps
+            elif symbol == ')':
+                rs = ''
+                for p in ps:
+                    if p == '(':
+                        rs += p
+                    else:
+                        outputs += p
+                ps = rs[1:]
+            elif symbol == '|':
+                if ps[0] == '(':
+                    ps = '|' + ps
                 else:
-                    ls += p
-            return _shunt(ls + outputs, rs[1:], symbols)
-        elif symbol == "|":
-            if ps[0] == "(":
-                return _shunt(outputs, '|' + ps, symbols)
+                    outputs += '('
+                    ps = '|' + ps[1:]
+            elif symbol == '&':
+                ps = '&' + ps
             else:
-                return _shunt(ps[0] + outputs, '|' + ps[1:], symbols)
-        elif symbol == "&":
-            return _shunt(outputs, '&' + ps, symbols)
+                outputs += symbol
+        elif symbol in {'(', '|', '&'}:
+            ps += symbol
         else:
-            return _shunt(symbol+ outputs, ps, symbols)
+            outputs += symbol
+    return outputs + ps
+
 
 def infix_to_postfix(infix):
-    return _shunt("", "", infix)
+    return _shunt(infix)
 
 def postfix_to_fsm(symbols):
     ms = []

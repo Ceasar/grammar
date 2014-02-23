@@ -14,5 +14,8 @@ def test_infix_to_postfix_star():
 def test_infix_to_postfix_parens():
     assert infix_to_postfix("(x|y)") == "xy|"
 
+def test_infix_to_postfix_case():
+    assert infix_to_postfix("(x|y)&y") == "xy|y&"
+
 def test_matches():
     assert matches("(x|y)", "x")
