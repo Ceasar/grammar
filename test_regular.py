@@ -70,6 +70,11 @@ def test_complex3():
     assert matches(re, "ab")
     assert matches(re, "acd")
 
+def test_complex4():
+    re = "a&b|c"
+    assert matches(re, "ab")
+    assert matches(re, "ac")
+
 def test_mismatched_parens():
     with pytest.raises(SyntaxError):
         matches("a)", "a")

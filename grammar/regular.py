@@ -22,7 +22,7 @@ def _infix_to_postfix(symbols):
             yield symbol
     if "(" in stack:
         raise SyntaxError("unmatched parenthesis")
-    for symbol in stack:
+    for symbol in reversed(stack):
         yield symbol
 
 
