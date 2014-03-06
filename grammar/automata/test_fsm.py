@@ -1,79 +1,76 @@
+import itertools
+
+import pytest
+
 from fsm import FiniteStateAutomaton, Transition
 
 
-def test_accept():
+def gen_words(alphabet, limit=4):
+    n = 0
+    while n < limit:
+        for s in itertools.product(alphabet, repeat=n):
+            yield ''.join(s)
+        n += 1
+
+@pytest.fixture
+def m():
+    """Recognizes 'a'."""
     m = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'a')},
-        accepting_states={1},
-    )
-    assert m.recognizes("a")
-
-
-def test_reject():
-    m = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'a')},
-        accepting_states={1},
-    )
-    assert not m.recognizes("b")
-
-
-def test_union():
-    m = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'a')},
-        accepting_states={1},
-    )
-    n = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'b')},
-        accepting_states={1},
-    )
-    o = m | n
-    assert o.recognizes("a")
-    assert o.recognizes("b")
-    assert not o.recognizes("c")
-
-
-def test_concatenation():
-    m = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'a'),},
-        accepting_states={1},
-    )
-    n = FiniteStateAutomaton(
-        states={0, 1},
-        start_state=0,
-        transitions={Transition(0, 1, 'b'),},
-        accepting_states={1},
-    )
-    o = m + n
-    assert not o.recognizes("a")
-    assert not o.recognizes("b")
-    assert o.recognizes("ab")
-    assert not o.recognizes("ba")
-
-
-def test_star():
-    m = FiniteStateAutomaton(
-        states={0, 1},
+        states={0, 1, 2},
         start_state=0,
         transitions={
             Transition(0, 1, 'a'),
+            Transition(0, 2, 'b'),
+            Transition(1, 2, 'a'),
+            Transition(1, 2, 'b'),
+            Transition(2, 2, 'a'),
+            Transition(2, 2, 'b'),
         },
         accepting_states={1},
     )
-    n = +m
-    assert n.recognizes("")
-    assert n.recognizes("a")
-    assert n.recognizes("aa")
-    assert not n.recognizes("b")
+    return m 
+
+@pytest.fixture
+def n():
+    """Recognizes 'b'."""
+    m = FiniteStateAutomaton(
+        states={0, 1, 2},
+        start_state=0,
+        transitions={
+            Transition(0, 2, 'a'),
+            Transition(0, 1, 'b'),
+            Transition(1, 2, 'a'),
+            Transition(1, 2, 'b'),
+            Transition(2, 2, 'a'),
+            Transition(2, 2, 'b'),
+        },
+        accepting_states={1},
+    )
+    return m 
+
+@pytest.fixture(params=gen_words('ab'))
+def s(request):
+    return request.param
+
+
+def test_accept(m, s):
+    assert m.recognizes(s) == (s == 'a')
+
+
+def test_union(m, n, s):
+    assert (m | n).recognizes(s) == (m.recognizes(s) or n.recognizes(s))
+
+
+def test_concatenation(m, n, s):
+    assert (m + n).recognizes(s) == any(
+        m.recognizes(s[:i]) and n.recognizes(s[i:])
+        for i, _ in enumerate(s)
+    )
+
+
+def test_star(m, s):
+    assert (+m).recognizes(s) == (s.count('a') == len(s))
+
 
 def test_epsilon():
     m = FiniteStateAutomaton(
