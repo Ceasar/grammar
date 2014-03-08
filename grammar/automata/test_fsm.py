@@ -54,22 +54,22 @@ def s(request):
 
 
 def test_accept(m, s):
-    assert m.recognizes(s) == (s == 'a')
+    assert s in m == (s == 'a')
 
 
 def test_union(m, n, s):
-    assert (m | n).recognizes(s) == (m.recognizes(s) or n.recognizes(s))
+    assert (s in (m | n)) == (s in m or s in n)
 
 
 def test_concatenation(m, n, s):
-    assert (m + n).recognizes(s) == any(
-        m.recognizes(s[:i]) and n.recognizes(s[i:])
+    assert s in (m + n) == any(
+        s[:i] in m and s[i:] in m
         for i, _ in enumerate(s)
     )
 
 
 def test_star(m, s):
-    assert (+m).recognizes(s) == (s.count('a') == len(s))
+    assert s in (+m) == (s.count('a') == len(s))
 
 
 def test_epsilon():
@@ -85,7 +85,7 @@ def test_epsilon():
         ]),
         accepting_states=set([1, 3, 5]),
     )
-    assert m.recognizes("a")
-    assert m.recognizes("b")
-    assert m.recognizes("c")
-    assert not m.recognizes("d")
+    assert "a" in m
+    assert "b" in m
+    assert "c" in m
+    assert "d" not in m

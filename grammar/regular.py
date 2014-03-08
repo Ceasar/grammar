@@ -53,4 +53,4 @@ def _make_fsm(infix):
 
 def matches(infix, string):
     fsm = _make_fsm(infix)
-    return fsm.recognizes(string)
+    return string in fsm

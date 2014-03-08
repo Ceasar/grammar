@@ -11,7 +11,7 @@ class FiniteStateAutomaton(object):
         self.transitions = transitions
         self.accepting_states = accepting_states
 
-    def recognizes(self, symbols):
+    def _recognizes(self, symbols):
         """Check if a machine recognizes a string."""
         current_states = {self.start_state}
         for symbol in symbols:
@@ -97,6 +97,9 @@ class FiniteStateAutomaton(object):
             ),
             accepting_states=({start_state} | a.accepting_states),
         )
+
+    def __contains__(self, s):
+        return self._recognizes(s)
 
     def __add__(self, other):
         return self.concatenate(other)
