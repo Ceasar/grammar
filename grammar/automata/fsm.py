@@ -1,11 +1,9 @@
-from collections import namedtuple
-
-
-Transition = namedtuple("Transition", ["start", "end", "symbol"])
 
 
 class FiniteStateAutomaton(object):
-    def __init__(self, states, start_state, transitions, accepting_states):
+    def __init__(self, alphabet, states, start_state, transitions,
+                 accepting_states):
+        self.alphabet = alphabet
         self.states = states
         self.start_state = start_state
         self.transitions = transitions
@@ -17,20 +15,11 @@ class FiniteStateAutomaton(object):
         for symbol in symbols:
             new_states = current_states
             while new_states:
-                new_states = {
-                    transition.end
-                    for transition in self.transitions
-                    if transition.start in new_states
-                    and transition.end not in current_states
-                    and transition.symbol is None
-                }
+                new_states = {self.transitions[s, None] for s in new_states
+                              if (s, None) in self.transitions}
                 current_states |= new_states
-            current_states = {
-                transition.end
-                for transition in self.transitions
-                if transition.start in current_states
-                and transition.symbol == symbol
-            }
+            current_states = {self.transitions[s, symbol]
+                              for s in current_states}
         return bool(current_states & self.accepting_states)
 
     def normalize(self, k=0):
@@ -39,10 +28,11 @@ class FiniteStateAutomaton(object):
         """
         m = {state: i + k for i, state in enumerate(self.states)}
         return FiniteStateAutomaton(
+            alphabet=self.alphabet,
             states=set(m.values()),
             start_state=k,
-            transitions={Transition(m[start], m[end], symbol)
-                        for start, end, symbol in self.transitions},
+            transitions={(m[s], c): m[self.transitions[s, c]]
+                         for c in self.alphabet for s in self.states},
             accepting_states={m[state] for state in self.accepting_states},
         )
 
@@ -53,30 +43,20 @@ class FiniteStateAutomaton(object):
         :param other: A FSM.
         """
         a, b = self.normalize(), other.normalize(len(self.states))
-        return FiniteStateAutomaton(
-            states=(a.states | b.states),
-            start_state=a.start_state,
-            transitions=(
-                a.transitions |
-                b.transitions |
-                {Transition(a.start_state, b.start_state, None)}
-            ),
-            accepting_states=(a.accepting_states | b.accepting_states),
-        )
+        a.states |= b.states
+        a.transitions.update(b.transitions)
+        a.transitions[a.start_state, None] = b.start_state
+        a.accepting_states |= b.accepting_states
+        return a
 
     def concatenate(self, other):
         a, b = self.normalize(), other.normalize(len(self.states))
-        return FiniteStateAutomaton(
-            states=(a.states | b.states),
-            start_state=a.start_state,
-            transitions=(
-                a.transitions |
-                b.transitions |
-                {Transition(state, b.start_state, None)
-                 for state in a.accepting_states}
-            ),
-            accepting_states=b.accepting_states,
-        )
+        a.states |= b.states
+        a.transitions.update(b.transitions)
+        for state in a.accepting_states:
+            a.transitions[state, None] = b.start_state
+        a.accepting_states = b.accepting_states
+        return a
 
     def star(self):
         """
@@ -85,18 +65,10 @@ class FiniteStateAutomaton(object):
         :param other: A FSM.
         """
         a = self.normalize()
-        start_state = min(a.states) - 1
-        return FiniteStateAutomaton(
-            states=a.states,
-            start_state=start_state,
-            transitions=(
-                a.transitions |
-                {Transition(start_state, a.start_state, None)} |
-                {Transition(state, a.start_state, None)
-                 for state in a.accepting_states}
-            ),
-            accepting_states=({start_state} | a.accepting_states),
-        )
+        for state in a.accepting_states:
+            a.transitions[state, None] = a.start_state
+        a.accepting_states.add(a.start_state)
+        return a
 
     def __contains__(self, s):
         return self._recognizes(s)
