@@ -11,32 +11,26 @@ class FiniteStateAutomaton(object):
         self.transitions = transitions
         self.accepting_states = accepting_states
 
-    def _closure(self, states):
-        """
-        Get the states reachable from epsilon transitions.
-        """
-        while True:
-            new_states = {
-                transition.end
-                for transition in self.transitions
-                for state in states
-                if transition.start == state and transition.symbol is None
-            }
-            if new_states <= states:
-                return states
-            states |= new_states
-
     def recognizes(self, symbols):
         """Check if a machine recognizes a string."""
-        current_states = self._closure({self.start_state})
+        current_states = {self.start_state}
         for symbol in symbols:
-            print current_states
-            current_states = self._closure({
+            new_states = current_states
+            while new_states:
+                new_states = {
+                    transition.end
+                    for transition in self.transitions
+                    if transition.start in new_states
+                    and transition.end not in current_states
+                    and transition.symbol is None
+                }
+                current_states |= new_states
+            current_states = {
                 transition.end
                 for transition in self.transitions
-                for state in current_states
-                if transition.start == state and transition.symbol == symbol
-            })
+                if transition.start in current_states
+                and transition.symbol == symbol
+            }
         return bool(current_states & self.accepting_states)
 
     def normalize(self, k=0):
